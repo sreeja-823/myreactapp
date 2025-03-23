@@ -62,5 +62,12 @@ jobs:
             --resource-group githubmyapp \
             --image ${{ secrets.AZURE_ACR_NAME }}.azurecr.io/my-app:latest \
             --cpu 1 --memory 2Gi \
-            --ingress external --target-port 3000 \
+            --subscription ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+          # Enable ingress and expose port 3000
+          az containerapp ingress enable \
+            --name githubmyapp \
+            --resource-group githubmyapp \
+            --target-port 3000 \
+            --ingress external \
             --subscription ${{ secrets.AZURE_SUBSCRIPTION_ID }}
