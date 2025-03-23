@@ -38,12 +38,12 @@ jobs:
       - name: Azure login
         uses: azure/login@v2
         with:
-          client-id: ${{ secrets.AZURE_CLIENT_ID }}
-          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}  # Use the GitHub secret for client ID
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}  # Use the GitHub secret for tenant ID
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}  # Use the GitHub secret for subscription ID
           auth-type: 'servicePrincipal'  # Correct value for auth-type
           enable-AzPSSession: true
-
+          allow-no-subscriptions: true
 
       # Step 6: Build Docker image
       - name: Build Docker image
@@ -64,7 +64,7 @@ jobs:
       # Step 10: Deploy Docker image to Azure Container Apps
       - name: Deploy Docker image to Azure Container Apps
         run: |
-          az containerapp create \
+          az containerapp update \
             --name githubmyapp-container \
             --resource-group githubmyapp \
             --image ${{ secrets.AZURE_ACR_NAME }}.azurecr.io/my-app:latest \
