@@ -58,8 +58,8 @@ jobs:
       - name: Deploy to Azure Container Apps
         run: |
           az containerapp update \
-            --name my-app-container \
-            --resource-group my-resource-group \
+            --name githubmyapp \
+            --resource-group githubmyapp \
             --image ${{ secrets.AZURE_ACR_NAME }}.azurecr.io/my-app:latest \
             --cpu 1 --memory 2Gi \
             --subscription ${{ secrets.AZURE_SUBSCRIPTION_ID }}
