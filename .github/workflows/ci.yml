@@ -48,11 +48,11 @@ jobs:
 
       # Step 8: Tag Docker image
       - name: Tag Docker image
-        run: docker tag my-app:latest ${{ secrets.AZURE_ACR_NAME }}.azurecr.io/my-app:latest
+        run: docker tag my-app ${{ secrets.AZURE_ACR_NAME }}.azurecr.io/my-app
 
       # Step 9: Push Docker image to ACR
       - name: Push Docker image to ACR
-        run: docker push ${{ secrets.AZURE_ACR_NAME }}.azurecr.io/my-app:latest
+        run: docker push ${{ secrets.AZURE_ACR_NAME }}.azurecr.io/my-app
 
       # Step 10: Deploy Docker image to Azure Container Apps
       - name: Deploy to Azure Container Apps
@@ -60,6 +60,5 @@ jobs:
           az containerapp update \
             --name githubmyapp \
             --resource-group githubmyapp \
-            --image ${{ secrets.AZURE_ACR_NAME }}.azurecr.io/my-app:latest \
-            --cpu 1 --memory 2Gi \
+            --image ${{ secrets.AZURE_ACR_NAME }}.azurecr.io/my-app \
             --subscription ${{ secrets.AZURE_SUBSCRIPTION_ID }}
