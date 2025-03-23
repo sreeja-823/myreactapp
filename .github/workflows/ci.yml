@@ -49,7 +49,7 @@ jobs:
 
       # Step 7: Log in to Azure Container Registry (ACR)
       - name: Log in to ACR
-        run: az acr login --name ${{ secrets.AZURE_ACR_NAME }}  # Use your ACR name
+        run: az acr login --name ${{ secrets.AZURE_ACR_NAME }}  # Use your ACR name secret
 
       # Step 8: Tag Docker image
       - name: Tag Docker image
