@@ -42,6 +42,8 @@ jobs:
           client-id: ${{ secrets.AZURE_CLIENT_ID }}
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           client-secret: ${{ secrets.AZURE_CLIENT_SECRET }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}  # Add subscription-id here
+          auth-type: service-principal
 
       # Step 7: Log in to Azure Container Registry (ACR)
       - name: Log in to ACR
@@ -64,5 +66,4 @@ jobs:
             --image githubmyapp.azurecr.io/my-app:latest \
             --cpu 1 --memory 2Gi \
             --ingress external --target-port 3000 \
-            --subscription ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-
+            --subscription ${{ secrets.AZURE_SUBSCRIPTION_ID }}  # Keep subscription-id in the deployment step
