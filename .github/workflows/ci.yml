@@ -1,72 +1,70 @@
-name: React CI/CD to Azure Container Apps
+# File: .github/workflows/workflow.yml
+
+name: Run Azure Login with OIDC and Deploy to Azure Container Apps
 
 on:
   push:
     branches:
       - main  # Trigger on push to 'main' branch
-  pull_request:
-    branches:
-      - main  # Trigger on PR to 'main' branch
 
 permissions:
-  id-token: write  # Grant write permissions to id-token
+  id-token: write  # Grant permission to request an ID token for OIDC
+  contents: read   # Required to read repository contents
 
 jobs:
   build-and-deploy:
-    runs-on: ubuntu-latest  # Run the job on the latest version of Ubuntu
+    runs-on: ubuntu-latest  # Use the latest Ubuntu runner
 
     steps:
-      # Step 1: Checkout code from the repository
+      # Step 1: Checkout the code from the repository
       - name: Checkout code
         uses: actions/checkout@v2
 
-      # Step 2: Set up Node.js (use stable version)
+      # Step 2: Set up Node.js (if your app is a React app or Node.js-based)
       - name: Set up Node.js
         uses: actions/setup-node@v2
         with:
-          node-version: '16'
+          node-version: '16'  # Specify the Node.js version you're using
 
       # Step 3: Install dependencies
       - name: Install dependencies
         run: npm install
 
-      # Step 4: Build the React app
+      # Step 4: Build the app
       - name: Build React app
-        run: npm run build
+        run: npm run build  # Or any other build command for your app
 
-      # Step 5: Build Docker image
-      - name: Build Docker image
-        run: docker build -t githubmyapp/my-app .
-
-      # Step 6: Log in to Azure using Service Principal
-      - name: Log in to Azure using Service Principal
+      # Step 5: Azure login using OIDC (Azure login action with service principal)
+      - name: Azure login
         uses: azure/login@v2
         with:
           client-id: ${{ secrets.AZURE_CLIENT_ID }}
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-          client-secret: ${{ secrets.AZURE_CLIENT_SECRET }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-          auth-type: 'service-principal'  # Corrected case to lowercase
+
+      # Step 6: Build Docker image
+      - name: Build Docker image
+        run: docker build -t my-app .
 
       # Step 7: Log in to Azure Container Registry (ACR)
       - name: Log in to ACR
-        run: az acr login --name githubmyapp
+        run: az acr login --name ${{ secrets.AZURE_ACR_NAME }}  # Use your ACR name
 
       # Step 8: Tag Docker image
       - name: Tag Docker image
-        run: docker tag githubmyapp/my-app:latest githubmyapp.azurecr.io/my-app:latest
+        run: docker tag my-app:latest ${{ secrets.AZURE_ACR_NAME }}.azurecr.io/my-app:latest
 
       # Step 9: Push Docker image to ACR
       - name: Push Docker image to ACR
-        run: docker push githubmyapp.azurecr.io/my-app:latest
+        run: docker push ${{ secrets.AZURE_ACR_NAME }}.azurecr.io/my-app:latest
 
-      # Step 10: Deploy to Azure Container Apps
+      # Step 10: Deploy Docker image to Azure Container Apps
       - name: Deploy Docker image to Azure Container Apps
         run: |
-          az containerapp create \
+          az containerapp update \
             --name githubmyapp-container \
             --resource-group githubmyapp \
-            --image githubmyapp.azurecr.io/my-app:latest \
+            --image ${{ secrets.AZURE_ACR_NAME }}.azurecr.io/my-app:latest \
             --cpu 1 --memory 2Gi \
             --ingress external --target-port 3000 \
-            --subscription ${{ secrets.AZURE_SUBSCRIPTION_ID }}  # Use your Azure Subscription ID from secrets
+            --subscription ${{ secrets.AZURE_SUBSCRIPTION_ID }}
