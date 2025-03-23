@@ -3,7 +3,7 @@ name: Azure CI/CD Pipeline
 on:
   push:
     branches:
-      - main  # Trigger on push to the 'main' branch
+      - main  # Trigger on push to 'main' branch
 
 permissions:
   id-token: write  # Permission to request an ID token for OIDC authentication (needed for Azure login)
@@ -36,7 +36,7 @@ jobs:
       - name: Azure login with Service Principal
         uses: azure/login@v2
         with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}  # Use a single secret storing all credentials in JSON format
+          creds: ${{ secrets.AZURE_CREDENTIALS }}  # Reference to the AZURE_CREDENTIALS secret
 
       # Step 6: Build Docker image
       - name: Build Docker image
