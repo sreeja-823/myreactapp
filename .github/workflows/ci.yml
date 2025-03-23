@@ -1,72 +1,66 @@
-name: Run Azure Login with OIDC and Deploy to Azure Container Apps
+name: Azure CI/CD Pipeline
 
 on:
   push:
     branches:
-      - main  # Trigger on push to 'main' branch
+      - main  # Trigger on push to the 'main' branch
 
 permissions:
-  id-token: write  # Grant permission to request an ID token for OIDC
-  contents: read   # Required to read repository contents
+  id-token: write  # Permission to request an ID token for OIDC authentication (needed for Azure login)
+  contents: read   # Permission to read repository contents
 
 jobs:
   build-and-deploy:
-    runs-on: ubuntu-latest  # Use the latest Ubuntu runner
+    runs-on: ubuntu-latest  # Use Ubuntu runner for CI/CD process
 
     steps:
-      # Step 1: Checkout the code from the repository
+      # Step 1: Checkout code from the repository
       - name: Checkout code
         uses: actions/checkout@v2
 
-      # Step 2: Set up Node.js (if your app is a React app or Node.js-based)
+      # Step 2: Set up Node.js (if you are using Node.js or React for your app)
       - name: Set up Node.js
         uses: actions/setup-node@v2
         with:
-          node-version: '16'  # Specify the Node.js version you're using
+          node-version: '16'  # Adjust if you're using a different version of Node.js
 
       # Step 3: Install dependencies
       - name: Install dependencies
         run: npm install
 
-      # Step 4: Build the app (e.g., React app)
-      - name: Build React app
-        run: npm run build  # Or any other build command for your app
+      # Step 4: Build the app (for React or Node.js apps)
+      - name: Build app
+        run: npm run build  # Adjust build command according to your app type
 
-      # Step 5: Log in to Azure using OIDC with Azure login action
-      - name: Azure login using OIDC
+      # Step 5: Azure login using Service Principal credentials from AZURE_CREDENTIALS secret
+      - name: Azure login with Service Principal
         uses: azure/login@v2
         with:
-          client-id: ${{ secrets.AZURE_CLIENT_ID }}  # Use the GitHub secret for client ID
-          tenant-id: ${{ secrets.AZURE_TENANT_ID }}  # Use the GitHub secret for tenant ID
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}  # Use the GitHub secret for subscription ID
-          auth-type: 'servicePrincipal'  # Authentication type for Azure login
-          enable-AzPSSession: true
-          allow-no-subscriptions: true
+          creds: ${{ secrets.AZURE_CREDENTIALS }}  # Use a single secret storing all credentials in JSON format
 
-      # Step 6: Build the Docker image
+      # Step 6: Build Docker image
       - name: Build Docker image
         run: docker build -t my-app .
 
       # Step 7: Log in to Azure Container Registry (ACR)
       - name: Log in to ACR
-        run: az acr login --name ${{ secrets.AZURE_ACR_NAME }}  # Use your ACR name secret
+        run: az acr login --name ${{ secrets.AZURE_ACR_NAME }}  # Name of your Azure Container Registry
 
-      # Step 8: Tag Docker image with ACR
+      # Step 8: Tag Docker image
       - name: Tag Docker image
         run: docker tag my-app:latest ${{ secrets.AZURE_ACR_NAME }}.azurecr.io/my-app:latest
 
-      # Step 9: Push Docker image to Azure Container Registry (ACR)
+      # Step 9: Push Docker image to ACR
       - name: Push Docker image to ACR
         run: docker push ${{ secrets.AZURE_ACR_NAME }}.azurecr.io/my-app:latest
 
       # Step 10: Deploy Docker image to Azure Container Apps
-      - name: Deploy Docker image to Azure Container Apps
+      - name: Deploy to Azure Container Apps
         run: |
           az containerapp update \
-            --name githubmyapp-container \
-            --resource-group githubmyapp \
+            --name my-app-container \
+            --resource-group my-resource-group \
             --image ${{ secrets.AZURE_ACR_NAME }}.azurecr.io/my-app:latest \
             --cpu 1 --memory 2Gi \
-            --ingress external --target-port 3000 \
+            --ingress external --target-port 80 \
             --subscription ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-
