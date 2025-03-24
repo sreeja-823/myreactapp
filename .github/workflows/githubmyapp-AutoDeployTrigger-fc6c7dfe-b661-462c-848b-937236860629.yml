@@ -4,21 +4,25 @@ name: Trigger auto deployment for githubmyapp
 on:
   # Automatically trigger it when detected changes in repo
   push:
-    branches: 
+    branches:
       [ main ]
     paths:
-    - '**'
-    - '.github/workflows/githubmyapp-AutoDeployTrigger-fc6c7dfe-b661-462c-848b-937236860629.yml'
+      - '**'
+      - '.github/workflows/githubmyapp-AutoDeployTrigger-fc6c7dfe-b661-462c-848b-937236860629.yml'
 
   # Allow manual trigger 
-  workflow_dispatch:      
+  workflow_dispatch:
+
+permissions:
+  id-token: write  # Permission to request an ID token for OIDC authentication (needed for Azure login)
+  contents: read   # Permission to read repository contents
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-    permissions: 
-      id-token: write #This is required for requesting the OIDC JWT Token
-      contents: read #Required when GH token is used to authenticate with private repo
+    permissions:
+      id-token: write  # This is required for requesting the OIDC JWT Token
+      contents: read   # Required when GH token is used to authenticate with private repo
 
     steps:
       - name: Checkout to the branch
@@ -35,14 +39,10 @@ jobs:
         uses: azure/container-apps-deploy-action@v2
         with:
           appSourcePath: ${{ github.workspace }}
-          _dockerfilePathKey_: _dockerfilePath_
+          dockerfile-path: Dockerfile  # Ensure this points to the correct path if needed
           registryUrl: githubmyapp.azurecr.io
           registryUsername: ${{ secrets.GITHUBMYAPP_REGISTRY_USERNAME }}
           registryPassword: ${{ secrets.GITHUBMYAPP_REGISTRY_PASSWORD }}
           containerAppName: githubmyapp
           resourceGroup: githubmyapp
           imageToBuild: githubmyapp.azurecr.io/githubmyapp:${{ github.sha }}
-          _buildArgumentsKey_: |
-            _buildArgumentsValues_
-
-
