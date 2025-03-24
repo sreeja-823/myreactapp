@@ -1,4 +1,5 @@
 name: Trigger auto deployment for githubmyapp
+
 # When this action will be executed
 on:
   # Automatically trigger it when detected changes in repo
